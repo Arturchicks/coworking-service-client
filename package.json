@@ -4,7 +4,7 @@
 	"scripts": {
 		"dev:api": "pnpm --filter @mvp/api dev",
 		"dev:frontend": "pnpm --filter @mvp/frontend dev",
-		"build": "pnpm -r build",
+		"build": "pnpm -r build --output public",
 		"typecheck": "pnpm -r typecheck",
 		"lint": "eslint ."
 	},
