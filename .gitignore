@@ -1,0 +1,41 @@
+# ── Node ──────────────────────────────────────────────────────────────────
+# Все node_modules в репо: корневой + api/ + frontend/ + nested pnpm-store.
+# `**/node_modules` ловит на любой глубине; обычный `node_modules` — для корня.
+node_modules/
+**/node_modules/
+
+# ── Build outputs ─────────────────────────────────────────────────────────
+# api/dist (tsc output), frontend/dist (Vite build).
+dist/
+**/dist/
+build/
+*.tsbuildinfo
+
+# ── Env / secrets ─────────────────────────────────────────────────────────
+# .env содержит DATABASE_URL и JWT_SECRET — НИКОГДА не в git.
+# .env.example остаётся под версионным контролем (там placeholder'ы).
+.env
+.env.local
+.env.*.local
+
+# ── Logs ──────────────────────────────────────────────────────────────────
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ── OS / IDE ──────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+.idea/
+*.swp
+*.swo
+
+# ── Vite / cache ──────────────────────────────────────────────────────────
+.vite/
+.cache/
+
+# ── Coverage / tests ──────────────────────────────────────────────────────
+coverage/
+.nyc_output/

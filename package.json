@@ -1,0 +1,28 @@
+{
+	"name": "mvp-stack",
+	"private": true,
+	"scripts": {
+		"dev:api": "pnpm --filter @mvp/api dev",
+		"dev:frontend": "pnpm --filter @mvp/frontend dev",
+		"build": "pnpm -r build",
+		"typecheck": "pnpm -r typecheck",
+		"lint": "eslint ."
+	},
+	"devDependencies": {
+		"@eslint/js": "^9.0.0",
+		"@stylistic/eslint-plugin": "^5.0.0",
+		"@types/node": "^22.0.0",
+		"@typescript-eslint/eslint-plugin": "^8.0.0",
+		"@typescript-eslint/parser": "^8.0.0",
+		"eslint": "^9.0.0",
+		"eslint-plugin-import": "^2.32.0",
+		"eslint-plugin-react": "^7.37.0",
+		"eslint-plugin-react-hooks": "^5.0.0",
+		"jiti": "^2.0.0",
+		"typescript": "^5.6.0",
+		"typescript-eslint": "^8.0.0"
+	},
+	"pnpm": {
+		"onlyBuiltDependencies": ["esbuild"]
+	}
+}

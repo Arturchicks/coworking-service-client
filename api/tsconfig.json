@@ -1,0 +1,65 @@
+// api/tsconfig.json
+// ─────────────────────────────────────────────
+// TypeScript configuration for the API.
+// JSON-with-comments: TypeScript-компилятор ПОДДЕРЖИВАЕТ комментарии в tsconfig.json
+// (хотя по строгому JSON-стандарту они недопустимы). VSCode тоже понимает.
+// Сторонние инструменты, читающие этот файл напрямую через JSON.parse без поддержки JSONC,
+// могут упасть — если такие появятся, комментарии нужно будет вынести.
+// ─────────────────────────────────────────────
+{
+	"compilerOptions": {
+		// `target: ES2022` — версия JS, в которую компилируется TS.
+		// ES2022 = Node.js 18+ (LTS). Включает: класс-поля, top-level await, Error cause, .at().
+		// Должна совпадать с версией Node в Dockerfile (node:22 здесь, поэтому ES2022 ок).
+		"target": "ES2022",
+		// `module: commonjs` — формат модулей (require/module.exports), классика Node.js.
+		// Альтернатива — "node16"/"nodenext"/"esnext" для ES modules (import/export в runtime).
+		// CommonJS сейчас стабильнее в Node-экосистеме; ESM требует "type": "module" в package.json
+		// и .mjs или специальные настройки.
+		"module": "commonjs",
+		// `lib: ["ES2022"]` — какие TYPE-определения встроенных API доступны.
+		// Без "DOM" → запрещены `window`, `document` (Node не должен их видеть, поймает ошибку).
+		"lib": ["ES2022"],
+		// `outDir: ./dist` — куда складывать скомпилированный JS.
+		// Frontend/Dockerfile копирует именно `dist/` (см. там COPY --from=builder /app/dist).
+		"outDir": "./dist",
+		// `rootDir: ./src` — корень исходников. Без этого TS может включить файлы из node_modules
+		// в outDir и получится /dist/node_modules/... — нежелательно.
+		"rootDir": "./src",
+		// `strict: true` — включает 8 строгих проверок одной строкой.
+		// Это лучший флаг в tsconfig: ловит ~80% типовых багов (null/undefined, неявный any, неверная this).
+		// Особенно ценен: strictNullChecks (объявленные ниже флаги — часть strict; их явное упоминание избыточно).
+		"strict": true,
+		"noImplicitAny": true,
+		"strictNullChecks": true,
+		// `esModuleInterop: true` — позволяет писать `import express from 'express'`
+		// вместо `import * as express from 'express'`. Под капотом TS добавляет ___importDefault helper.
+		// Без него интероп между CommonJS-модулями (require) и ESM-синтаксисом (import) ломается.
+		// 99% проектов сегодня — true.
+		"esModuleInterop": true,
+		// `skipLibCheck: true` — НЕ ПРОВЕРЯТЬ типы в .d.ts из node_modules.
+		// Цена: пропустим конфликт типов между двумя пакетами. Польза: компиляция в разы быстрее,
+		// чужие типы — не твоя проблема, чинить их ты всё равно не будешь.
+		"skipLibCheck": true,
+		// `forceConsistentCasingInFileNames: true` — `import './Foo'` и `import './foo'` должны
+		// совпадать в регистре. Защита от mac/win (case-insensitive FS) → linux (case-sensitive) deploy-ловушек:
+		// на маке всё работает, в Docker (Linux) ломается.
+		"forceConsistentCasingInFileNames": true,
+		// `resolveJsonModule: true` — можно делать `import config from './config.json'` с типобезопасностью.
+		"resolveJsonModule": true,
+		// `declaration: false` — НЕ генерировать .d.ts файлы. Они нужны при публикации библиотеки в npm,
+		// но это приложение (не библиотека) → пустая трата ресурсов.
+		"declaration": false,
+		// `sourceMap: true` — генерировать .map-файлы для отладки.
+		// При ошибке в runtime stack trace будет указывать на .ts, а не на .js — критично для debugger'а.
+		// FLAG: в production это утечка кода (исходники в Docker-образе). Промышленный приём:
+		// генерировать только в dev (через отдельный tsconfig.dev.json) или sourceMap: "inline"
+		// + удалять перед публикацией.
+		"sourceMap": true
+	},
+	// `include` — что компилировать. `**/*` — рекурсивно все файлы.
+	"include": ["src/**/*"],
+	// `exclude` — что НЕ компилировать. node_modules исключается по умолчанию,
+	// но явно надёжнее. dist исключаем, чтобы не было цикла «компиляция уже скомпилированного».
+	"exclude": ["node_modules", "dist"]
+}

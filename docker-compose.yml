@@ -1,0 +1,99 @@
+# docker-compose.yml — MVP стек.
+# 3 сервиса: postgres + api + nginx (nginx также собирает и отдаёт frontend-статику).
+#
+# Зачем нет blue/green: на MVP zero-downtime deploy — over-engineering.
+# YAGNI: добавим, когда появится боль "выкатить в прод без даунтайма".
+#
+# Зачем нет отдельного frontend-контейнера: frontend — статика после `vite build`,
+# её отдаёт тот же NGINX, который проксирует /api → api. Один meaningful слой,
+# а не два (Next-style runtime + nginx-proxy).
+
+services:
+
+  # ── PostgreSQL ───────────────────────────────
+  # Pin major-версии (16-alpine). НЕ использовать `latest` в production:
+  # новая мажорная версия может прийти молча и потребовать dump+restore.
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      # Эти три переменные стандартный postgres-образ читает при ПЕРВОМ старте
+      # (на пустом volume) и создаёт БД/пользователя. При повторных стартах — игнор.
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      # Named volume — Docker управляет местом на диске.
+      # КРИТИЧНО: без volume `docker compose down` или пересоздание контейнера
+      # = потеря БД (overlay-фс контейнера эфемерна).
+      - pgdata:/var/lib/postgresql/data
+      # Bind mount: файлы в /docker-entrypoint-initdb.d/ образ выполняет
+      # один раз при пустой БД. Стандартный механизм для seed/schema-bootstrap.
+      - ./scripts/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      # pg_isready возвращает 0, если БД принимает соединения.
+      # api ниже ждёт `service_healthy` — без этого api стартует, пока postgres ещё инициализируется,
+      # и первый коннект падает. Базовый `depends_on` гарантирует только порядок запуска, не готовность.
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - internal
+    restart: unless-stopped
+
+  # ── API ──────────────────────────────────────
+  # Один контейнер, без -blue/-green суффиксов. Деплой нового кода = `docker compose up -d --build api`
+  # — короткий downtime, приемлемо на MVP.
+  api:
+    build:
+      # build.context — директория, отправляемая демону Docker для COPY-операций в Dockerfile.
+      # Без .dockerignore сюда попадут node_modules, .env — раздувают контекст и текут секреты.
+      context: ./api
+      dockerfile: Dockerfile
+    container_name: api
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: ${DATABASE_URL}
+      PORT: 3001
+    depends_on:
+      # condition: service_healthy ждёт healthcheck postgres, не только "контейнер запущен".
+      # Это работает с Compose v2.1+.
+      postgres:
+        condition: service_healthy
+    networks:
+      - internal
+    restart: unless-stopped
+
+  # ── NGINX (reverse proxy + static frontend) ─
+  # Multi-stage в nginx/Dockerfile: stage 1 собирает Vite-bundle, stage 2 (nginx:alpine)
+  # копирует получившийся dist/ в /usr/share/nginx/html. Один образ, один контейнер.
+  nginx:
+    build:
+      # context — корень репо, потому что Dockerfile должен видеть и frontend/ (для сборки),
+      # и nginx/nginx.conf (для копирования). Если задать ./nginx — frontend/ останется снаружи.
+      context: .
+      dockerfile: nginx/Dockerfile
+    container_name: nginx
+    depends_on:
+      # На MVP не делаем service_healthy для api: api не имеет docker HEALTHCHECK в этом setup.
+      # Симптом: первые 1-2 секунды после `up` /api может отдавать 502.
+      # Лечится: добавь HEALTHCHECK в api/Dockerfile и condition: service_healthy здесь.
+      - api
+    ports:
+      # ports: HOST:CONTAINER — единственный сервис с публикацией портов наружу.
+      # api/postgres доступны только из сети internal. Минимум attack surface.
+      - "80:80"
+    networks:
+      - internal
+    restart: unless-stopped
+
+# Named volumes переносимы между хостами, не зависят от путей на хосте.
+# Удалить явно: `docker compose down -v` или `docker volume rm <project>_pgdata`.
+volumes:
+  pgdata:
+
+# Изолированная сеть. Сервисы видят друг друга по имени контейнера через Docker DNS
+# (`api` резолвится на IP контейнера api). Внешний мир видит только опубликованное в ports.
+networks:
+  internal:
+    driver: bridge
