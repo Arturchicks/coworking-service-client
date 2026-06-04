@@ -3,7 +3,6 @@ import {WorkspaceType} from './WorkspaceType'
 
 
 // Entity — DDD: identity-based объект (равен другому, если совпадает id).
-// CLAUDE.md DDD rule #4: entity encapsulates state mutation, не анемичная модель.
 //
 // Здесь Workspace максимально близко к "плотскому" описанию: имя, тип, капасити, цена.
 // На MVP нет mutating-операций (переименовать, изменить цену) — Workspace ведёт себя

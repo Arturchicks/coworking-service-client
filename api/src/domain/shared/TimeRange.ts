@@ -1,5 +1,4 @@
 // Value Object — DDD: immutable, equality by value, не имеет identity.
-// CLAUDE.md DDD rule #5: Value Objects immutable, equality structural.
 //
 // TimeRange защищает инвариант "starts < ends" в одном месте — конструктор-валидатор.
 // Без VO эта проверка размазывается по use cases / роутерам / репозиториям → DRY-нарушение.

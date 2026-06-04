@@ -3,7 +3,6 @@ import {WorkspaceType} from '../../../domain/workspaces/WorkspaceType'
 
 
 // DTO — плоский контракт application → внешний мир.
-// CLAUDE.md DDD rule #3. Не путать с entity: DTO не имеет поведения, только данные.
 // CS-принцип: Separation of Concerns (transfer vs domain).
 export interface WorkspaceDto {
 	id: string
