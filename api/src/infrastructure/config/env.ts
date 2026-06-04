@@ -1,3 +1,21 @@
+// Загрузка .env ДО любого чтения process.env. dotenv мутирует process.env in-place
+// и тихо игнорирует отсутствующий файл (в Docker .env приходит через docker-compose
+// env_file: и dotenv ничего не находит — это ОК).
+//
+// Путь: .env лежит в корне монорепо, а `pnpm --filter @mvp/api dev` запускает процесс
+// с cwd=api/, поэтому дефолтный `dotenv/config` (ищет в cwd) не находит файл. Резолвим
+// относительно ЭТОГО файла — работает откуда бы ни был запущен процесс.
+// override:false — реальные переменные процесса (docker-compose env_file, shell export)
+// приоритетнее значений из .env.
+//
+// Принцип: explicit dependency — модулю env.ts нужны env-vars, и он сам их же подгружает.
+import {config as loadDotenv} from 'dotenv'
+import {resolve} from 'node:path'
+
+
+loadDotenv({path: resolve(__dirname, '../../../../.env'), override: false})
+
+
 // Конфигурационный модуль — единственное место, где читается process.env.
 // Принципы: Single Source of Truth, Anti-Corruption Layer, Dependency Inversion.
 //

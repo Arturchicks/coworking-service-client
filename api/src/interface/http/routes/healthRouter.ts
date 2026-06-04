@@ -3,7 +3,6 @@ import {GetLivenessUseCase} from '../../../application/healthcheck/GetLivenessUs
 
 
 // Factory-функция роутера — зависимости через параметр (DI), а не singleton-импорт.
-// CLAUDE.md DDD: "interface/http: thin routers — parse → call use case → serialize. No business logic."
 export function createHealthRouter(deps: {getLiveness: GetLivenessUseCase}): Router {
 	// Router() — изолированный mini-app Express'а. Монтируется в основное приложение через app.use().
 	const router = Router()

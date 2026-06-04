@@ -57,6 +57,7 @@ export function WorkspacesPage() {
 				onApply={loadAvailable}
 				onReset={loadAll}
 				loading={loading}
+				filterActive={Boolean(filter)}
 			/>
 
 			{/* loading и error имеют приоритет над banner'ами с количеством. */}

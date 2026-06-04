@@ -70,14 +70,13 @@ export default [
 			],
 
 			// КРИТИЧЕСКОЕ ПРАВИЛО для backend DDD-границ — кодификация архитектурных
-			// правил из CLAUDE.md в виде автоматических проверок. Без этого они полагаются
 			// на ревью; здесь ESLint ловит нарушение ДО коммита.
 			//
 			// Семантика zones: {target, from} — ЗАПРЕЩЕНО target импортировать из from.
 			// Это enforce'ит "Imports flow strictly inward: interface → application → domain".
 			'import/no-restricted-paths': ['error', {
 				zones: [
-					// DDD: domain не знает ни о ком (DDD rule #1, CLAUDE.md).
+					// DDD: domain не знает ни о ком
 					{target: './api/src/domain', from: './api/src/application'},
 					{target: './api/src/domain', from: './api/src/infrastructure'},
 					{target: './api/src/domain', from: './api/src/interface'},

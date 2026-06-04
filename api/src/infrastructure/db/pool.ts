@@ -22,7 +22,17 @@ import env from '../config/env'
 // FLAG: модуль создаёт `pool` на верхнем уровне (module-level side effect). Это значит,
 // `import` этого файла = создание пула. Затрудняет тестирование (нельзя получить инстанс
 // без побочного эффекта). Альтернатива: фабрика `createPool(env)`, вызываемая из Composition Root.
-export const pool = new Pool({connectionString: env.databaseUrl,  ssl: {rejectUnauthorized: false}})
+//
+// SSL: managed Postgres (Neon/Supabase) требует TLS, локальный Homebrew/Docker — нет.
+// 12-Factor "Config in env": вместо хардкода читаем флаг из самого DATABASE_URL.
+// Если URL содержит `sslmode=require` (или disable/prefer/verify-*), включаем TLS.
+// `rejectUnauthorized: false` — managed-провайдеры используют свои CA, который Node не знает;
+// для MVP принимаем любой серт. В проде с собственным CA — указать `ca` вместо отключения проверки.
+const sslRequired = /sslmode=(require|verify-ca|verify-full)/.test(env.databaseUrl)
+export const pool = new Pool({
+	connectionString: env.databaseUrl,
+	ssl: sslRequired ? {rejectUnauthorized: false} : false,
+})
 
 // pool.on('error', ...) — ловит ошибки на ИДЛ-соединениях (когда никто не делает query,
 // но связь оборвалась). Без этого обработчика Node бросает unhandledError и роняет процесс.

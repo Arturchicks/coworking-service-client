@@ -7,7 +7,6 @@ import {isWorkspaceType} from '../../domain/workspaces/WorkspaceType'
 
 
 // Адаптер для порта WorkspaceRepository.
-// CLAUDE.md DDD rule #6: infrastructure → domain (одностороннее направление).
 // CS-принцип: Ports & Adapters / Hexagonal Architecture — Pg-специфика инкапсулирована здесь.
 export class PgWorkspaceRepository implements WorkspaceRepository {
 	constructor(private readonly pool: Pool) {}
@@ -58,7 +57,6 @@ export class PgWorkspaceRepository implements WorkspaceRepository {
 function rowToWorkspace(row: Record<string, unknown>): Workspace {
 	const type = row.type
 	if (!isWorkspaceType(type)) {
-		// Fail-Fast (CLAUDE.md правило): не пытаемся "восстановить" битый row,
 		// бросаем — пусть лог покажет corruption.
 		throw new Error(`PgWorkspaceRepository: invalid workspace.type from DB: ${String(type)}`)
 	}

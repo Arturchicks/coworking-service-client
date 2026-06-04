@@ -1,5 +1,4 @@
 // DTO — плоский контракт use case → внешний мир.
-// CLAUDE.md DDD rule #3: use cases возвращают DTO, не строят HTTP-ответы и не знают про req/res.
 // Это позволяет переиспользовать use case под другим транспортом (CLI, gRPC) без правок.
 export interface LivenessDto {
 	status: 'ok'

@@ -3,7 +3,6 @@ import {WorkspaceDto, workspaceToDto} from './dto/WorkspaceDto'
 
 
 // Use Case — оркестрирует один user-сценарий "список рабочих мест".
-// CLAUDE.md DDD rule #3: input/output — plain DTO, никаких req/res.
 //
 // CS-принцип: Single Responsibility (SOLID SRP) — этот класс знает только про
 // "вытащить список и сериализовать". Если завтра добавится фильтрация по типу,

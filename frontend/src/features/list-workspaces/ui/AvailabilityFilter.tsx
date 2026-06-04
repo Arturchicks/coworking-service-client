@@ -6,6 +6,9 @@ interface AvailabilityFilterProps {
 	onApply: (startsAt: string, endsAt: string) => void
 	onReset: () => void
 	loading?: boolean
+	// true — сейчас показаны только свободные (фильтр активен). Источник истины — `filter`
+	// на странице; компонент не держит свою копию режима (Single Source of Truth).
+	filterActive?: boolean
 }
 
 function defaultStart() {
@@ -29,7 +32,7 @@ function toLocalInput(d: Date): string {
 	return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
 }
 
-export function AvailabilityFilter({onApply, onReset, loading}: AvailabilityFilterProps) {
+export function AvailabilityFilter({onApply, onReset, loading, filterActive}: AvailabilityFilterProps) {
 	const [startsAt, setStartsAt] = useState(defaultStart())
 	const [endsAt, setEndsAt] = useState(defaultEnd())
 
@@ -59,10 +62,10 @@ export function AvailabilityFilter({onApply, onReset, loading}: AvailabilityFilt
 					className="px-2 py-1 border rounded"
 				/>
 			</label>
-			<Button type="submit" disabled={loading}>
+			<Button type="submit" disabled={loading || filterActive}>
 				{'Показать свободные'}
 			</Button>
-			<Button type="button" variant="secondary" onClick={onReset} disabled={loading}>
+			<Button type="button" variant="secondary" onClick={onReset} disabled={loading || !filterActive}>
 				Все места
 			</Button>
 		</form>

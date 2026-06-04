@@ -4,7 +4,6 @@ import {ListWorkspacesUseCase} from '../../../application/workspaces/ListWorkspa
 
 
 // Thin router: parse query → call use case → serialize. NO business logic.
-// CLAUDE.md DDD rule for interface/http.
 export function createWorkspacesRouter(deps: {
 	listWorkspaces: ListWorkspacesUseCase
 	checkAvailability: CheckAvailabilityUseCase
